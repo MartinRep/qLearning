@@ -1,17 +1,18 @@
-(x, y) = (5, 5) # Grid parameters
+(x, y) = (10, 10) # Grid parameters
 actions = ["up", "down", "left", "right"]
-start_position = (0, y-1)
+start_position = (2, 2)
 player = start_position
-score = 1
+score = 0
 restart = False
-move_reward = -0.04
+move_reward = -1
+goal_reward = 10
 walls = []
-specials = [(4, 0, score)]
+specials = [(6, 6, goal_reward)]
 
 def restart_game():
     global player, score, restart
     player = start_position
-    score = 1
+    score = 0
     restart = False
 
 def has_restarted():

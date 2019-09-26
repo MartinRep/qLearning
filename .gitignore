@@ -118,4 +118,7 @@ dmypy.json
 # Ignore all local history of files
 .history
 
+# jupyter notebook
+.ipynb_checkpoints
+
 # End of https://www.gitignore.io/api/python,visualstudiocode

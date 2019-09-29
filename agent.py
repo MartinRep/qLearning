@@ -9,28 +9,27 @@ e_decay = 0
 alpha = 0.1
 num_of_episodes = 1000
 max_moves = 100
-
-
+actions = ["up", "down", "left", "right"]
+grid = {'x': 10, 'y': 10}   # TODO - Fetch from world API
 
 log = []
-
-actions = ["up", "down", "left", "right"]
-grid = {'x': 10, 'y': 10}
 states = []
-Q = {}
-E = {}
+
+policy = 0.0 # Set to 0.1 for greedy policy
 for i in range(grid['x']):
-    for j in range(grid['x']):
+    for j in range(grid['y']):
         states.append((i, j))
 
+empty_q = {}
+empty_e = {}
+for action in actions:
+    empty_q[action] = policy 
+    empty_e[action] = 0.0
+Q = {}
+E = {}
 for state in states:
-    temp = {}
-    temp_e = {}
-    for action in actions:
-        temp[action] = 0.0 # Set to 0.1 for greedy policy
-        temp_e[action] = 0.0
-    Q[state] = temp
-    E[state] = temp_e
+    Q[state] = empty_q
+    E[state] = empty_e
 
 # for (i, j, w) in world.specials:
 #     for action in actions:

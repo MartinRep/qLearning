@@ -40,7 +40,7 @@ def try_move(agentID):
         delta_y = int(request.args.get('deltaY'))
     except:     # checks for integers
         return "False"
-    if((delta_x is not 0 and delta_y is not 0) or (delta_x is 0 and delta_y is 0) or delta_x not in [-1,1] or delta_y not in [-1, 1]): # checks for ilegal moves
+    if((delta_x is not 0 and delta_y is not 0) or (delta_x is 0 and delta_y is 0) or delta_x not in [-1, 0, 1] or delta_y not in [-1, 0, 1]): # checks for ilegal moves
         return "False"
     agent = next((item for item in agents if item["name"] == agentID), False)
     if agent is False:

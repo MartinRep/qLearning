@@ -10,14 +10,13 @@ class Qlearning:
     
     def __init__(self, server = 'http://localhost:5100'):
         self.server = server
-        self._join()
-        # while(self._join() is not True):
-        #    print("Join unsuccessfull, trying in a second...")
-        #    time.sleep(1) 
+        while(self._join() is not True):
+           print("Join unsuccessfull, trying in a second...")
+           time.sleep(1) 
         self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
         self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
         self.e_decay = 0.9   # How long it takes to stop exloring and just follow the best route. 
-        self.alpha = 0.1     # Rate og learning.
+        self.alpha = 0.99     # Rate og learning.
         self.num_of_episodes = 1000
         self.max_moves = 100 # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
         self.actions = ["up", "down", "left", "right"]
@@ -50,12 +49,14 @@ class Qlearning:
 
     def move(self):
         last_pos = (self.agent['x'], self.agent['y'])
-        print("LAST pos: {}".format(last_pos))
         action = self._next_action()
         if (self._move(action)): # If the move was successfully executed, update the Q table.
             newQ = self._updateQ(action, self.agent['latest_move'], last_pos)
-            # TODO Check for finished? and implement alpha and epsilon decay, logging
-            return {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
+            if self.agent['steps'] >= 100:
+                result = requests.get(self.server + '/restart/' + self.agent['name'])
+                self.agent = result.json()
+            # TODO Implement alpha and epsilon decay, logging
+            return self.agent['finished'], {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
         return None
 
     # Return action with highest Q value
@@ -75,7 +76,7 @@ class Qlearning:
             pos = (self.agent['x'], self.agent['y'])
             if not all(elem == self.Q[pos][self.actions[0]] for elem in self.Q[pos].values()):  # if all Qs in the position are the same, chose random direction instead.
                 return self._max_Q(pos)
-        return random.choice(self.actions)
+        return random.SystemRandom().choice(self.actions)
     
     def _move(self, action):
         try:
@@ -94,8 +95,12 @@ class Qlearning:
             return False
 
     def _updateQ(self, action, reward, pos):
-        self.Q[pos][action] += self.alpha*(float(reward) + self.gamma*self.Q[pos][self._max_Q(pos)] - self.Q[pos][action])
+        self.Q[pos][action] += self.alpha*(float(reward) + self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))] - self.Q[pos][action])
         return self.Q[pos][action]
+
+    def get_Q(self):
+        print(self.Q)
+        return self.Q
 
 
 #         

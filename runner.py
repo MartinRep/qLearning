@@ -1,12 +1,18 @@
 import qLearning
+import json
 
 
 def main():
     log = []
     ql = qLearning.Qlearning()
-    newQ = ql.move()
+    finished, newQ = ql.move()
     # TODO implement sharing the new Q entry with other agents via bprotocol
-    print("result: {}".format(newQ))
+    
+    while(not finished):
+        print("result: {}".format(newQ))
+        finished, newQ = ql.move()   
+    print("Finished")
+    
 
     
     # TODO implement logging

@@ -1,15 +1,18 @@
 import random
 import csv
 import requests
+import time
 
 # Q(S[t], A[t]) += alpha*(R[t+1] + gama * maxQ(S[t+1], A) - Q(S[t], A[t]))
 
 class Qlearning:
     random.seed(0)
     
-    def __init__(self, name, server = 'http://localhost:5100'):
-        self.name = name
+    def __init__(self, server = 'http://localhost:5100'):
         self.server = server
+        while(not _join()):
+           print("Join unsuccessfull, trying in a second...")
+           time.sleep(1) 
         self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
         self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
         self.e_decay = 0.9   # How long it takes to stop exloring and just follow the best route. 
@@ -30,112 +33,68 @@ class Qlearning:
             empty_q[action] = self.policy 
             empty_e[action] = 0.0
         self.Q = {}
-        self.E = {}
         for state in self.states:
             self.Q[state] = empty_q
-            self.E[state] = empty_e
+        self.result = {}    # Results of an move/action taken
 
-    def do_action(self, action):
-        if action == self.actions[0]:
-            result = requests.get(self.server + '/move/' + self.name + '?deltaX=0&deltaY=-2')
-        elif action == self.actions[1]:
-            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=0&deltaY=1')
-        elif action == self.actions[2]:
-            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=-1&deltaY=0')
-        elif action == self.actions[3]:
-            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=1&deltaY=0')
-        if result.text == 'False':
-            return False
+    def _join(self):
+        try:
+            result = requests.get(self.server + '/join')
+            if result.text == "False":
+                return False
+            self.agent = result.json()
+            return True
+
+    def move(self):
+        last_pos = (self.agent['x'], self.agent['y'])
+        action = _next_action()
+        if (_move(action)): # If the move was successfully executed, update the Q table.
+            newQ = _updateQ(last_pos, action, self.agent['latest_move'])
+            # TODO Check for finished? and implement alpha and epsilon decay, logging
+            return {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
+        return None
+
+    # Return action with highest Q value
+    def _max_Q(self, *pos):
+        curr_Qs = Q[pos]
+        maxQ = curr_Qs[self.actions[0]]
+        max_action = 0
+        for i in range(1,4):
+            if (curr_Qs[self.actions[i]] > maxQ):
+                maxQ = curr_Qs[self.actions[i]]
+                max_action = i
+        return self.actions[max_action]
+    
+    # Return next action determined by epsilon
+    def _next_action(self):
+        if random.random() > self.epsilon:      # Exloration chance
+            return _max_Q(self.agent['x'], self.agent['y'])
         else:
-            return result.json()
+            return random.choice(random.shuffle(self.actions))
+    
+    def _move(self, action):
+        try:
+            if action == self.actions[0]:
+                result = requests.get(self.server + '/move/' + self.agent['name'] + '?deltaX=0&deltaY=-2')
+            elif action == self.actions[1]:
+                result = requests.get(self.server + '/move/' + self.agent['name'] + '?deltaX=0&deltaY=1')
+            elif action == self.actions[2]:
+                result = requests.get(self.server + '/move/' + self.agent['name'] + '?deltaX=-1&deltaY=0')
+            elif action == self.actions[3]:
+                result = requests.get(self.server + '/move/' + self.agent['name'] + '?deltaX=1&deltaY=0')
+            if result.text is not 'False':
+                self.agent = result.json()     # Update agent with result for the current move
+                return True
+        except:    
+            return False
+
+    def _updateQ(self, *pos, action, reward):
+        Q[pos][action] += self.alpha*(reward + self.gamma*_max_Q(pos) - Q[pos][action])
+        return Q[pos][action]
 
 
-
-#     else:
-#         return
-#     s2 = world.player
-#     r += world.score
-#     return s, action, r, s2
-
-
-# def reset_E():
-#     for state in states:
-#         for action in actions:
-#             E[state][action] = 0
-
-# def max_Q(s):
-#     val = None
-#     act = None
-#     for a, q in Q[s].items():
-#         if val is None or (q > val):
-#             val = q
-#             act = a
-#     return act, val
-
-
-# def policy(s, eps=epsilon):
-#     if random.random() > eps:
-#         return max_Q(s)
-#     else:
-#         l = [(a, q) for a, q in Q[s].items()]
-#         random.shuffle(l)
-#         return random.choice(l)
-
-
-# def inc_Q(s, a, alpha, inc):
-#     Q[s][a] += alpha * inc * E[s][a]
-
-# def main():
-#     global gamma
-#     global epsilon
-#     global alpha
-#     global log
-#     score = 0
-#     s1 = world.player
-#     a1, q_val1 = policy(s1)
-#     for episode_num in range(num_of_episodes):
-#         steps = 0
-#         score = 0
-#         while not world.has_restarted():
-#             # Do the action
-#             (s1, a1, r1, s2) = do_action(a1)
-#             score += r1
-
-#             # Update Q
-#             a2, q_val2 = policy(s2) # Change to max_Q(s2) for Greedy policy
-#             a_best, q_best = max_Q(s2)
-#             delta = r1 + gamma * q_best - Q[s1][a1]
-#             E[s1][a1] = 1
-
-
-#             for state in states:
-#                 for action in actions:
-#                     inc_Q(state, action, alpha, delta)
-#                     if a_best == a2:
-#                         E[state][action] *= gamma * e_decay
-#                     else:
-#                         E[state][action] = 0
-#             # print('new q:', Q[s1][a1])
-#             s1 = s2
-#             a1 = a2
-#             q_val1 = q_val2
-
-#             steps += 1
-#             if steps > max_moves:
-#                 break
-
-#         print("Steps: {}".format(steps))
-#         world.restart_game()
-#         reset_E()
-#         log.append({'episode': episode_num, 'score': score, 'steps': steps, 'alpha': alpha, 'epsilon': 0})
+#         
 #         alpha = max(0.1, pow(episode_num+1, -0.4))
 #         epsilon = min(0.3, pow(episode_num+1, -1.2))
 
-#     with open('output/log.csv', 'w') as csvfile:
-#         writer = csv.DictWriter(csvfile, fieldnames=['episode', 'score', 'steps', 'alpha', 'epsilon'])
-#         writer.writeheader()
-#         for episode in log:
-#             writer.writerow(episode)
 
-# if __name__ == "__main__":
-#     main()

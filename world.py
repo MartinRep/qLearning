@@ -17,18 +17,18 @@ from flask import Flask, request, Response, jsonify
 app = Flask(__name__)
 
 grid_world = {'x': 10, 'y': 10, 'move_penalty': -1, 'goal_reward': 10}
+max_agents = 4
 walls = []      # Tumble (X, y) for wall position
 specials = [(6, 6, grid_world['goal_reward'], True)]    # Tumble (x, y, square_reward, square finished episode?)
 
-start_pos = [{'name': 'agent1', 'x': 0, 'y': 0},
+start_pos = [{'name': 'agent1', 'x': 0, 'y': 0},    # Agents starting positions
              {'name': 'agent2', 'x': 1, 'y': 1},
              {'name': 'agent3', 'x': 2, 'y': 2},
              {'name': 'agent4', 'x': 3, 'y': 3},]
 
-agents = [{'name': 'agent1', 'x': 0, 'y':0, 'latest_move': 0, 'score': 0, 'finished': False},
-          {'name': 'agent2', 'x': 1, 'y':1, 'latest_move': 0, 'score': 0, 'finished': False},
-          {'name': 'agent3', 'x': 2, 'y':2, 'latest_move': 0, 'score': 0, 'finished': False},
-          {'name': 'agent4', 'x': 3, 'y':3, 'latest_move': 0, 'score': 0, 'finished': False},]
+agents = []
+for i in range(max_agents):
+    agents.append({'name': 'agent' + str(i), 'taken': False, 'x': start_pos[i]['x'], 'y':start_pos[i]['y'], 'steps': 0 ,'latest_move': 0, 'score': 0, 'finished': False})
 
 @app.route("/move/<agentID>")
 def try_move(agentID):
@@ -50,6 +50,7 @@ def try_move(agentID):
         agent['x'] = st['x']
         agent['y'] = st['y']
         agent['score'] = 0
+        agent['steps'] = 0
         agent['latest_move'] = 0
     new_x = agent['x'] + delta_x
     new_y = agent['y'] + delta_y
@@ -70,5 +71,13 @@ def try_move(agentID):
 @app.route("/")
 def summary():
     return jsonify( grid_world, agents)
+
+@app.route("/join")
+def join():
+    for agent in agents:
+        if agent['taken'] == False:
+            agent['taken'] == True
+            return agent
+    return 'False'
 
 app.run(port=5100)

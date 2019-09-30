@@ -3,7 +3,7 @@ import qLearning
 
 def main():
     log = []
-    ql = qLearning.Qlearning('agent1')
+    ql = qLearning.Qlearning()
     newQ = ql.move()
     # TODO implement sharing the new Q entry with other agents via bprotocol
     print("result: {}".format(newQ))

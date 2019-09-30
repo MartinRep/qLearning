@@ -24,7 +24,7 @@ specials = [(6, 6, grid_world['goal_reward'], True)]    # Tumble (x, y, square_r
 start_pos = [{'name': 'agent1', 'x': 0, 'y': 0},    # Agents starting positions
              {'name': 'agent2', 'x': 1, 'y': 1},
              {'name': 'agent3', 'x': 2, 'y': 2},
-             {'name': 'agent4', 'x': 3, 'y': 3},]
+             {'name': 'agent4', 'x': 3, 'y': 3}]
 
 agents = []
 for i in range(max_agents):
@@ -77,7 +77,7 @@ def join():
     for agent in agents:
         if agent['taken'] == False:
             agent['taken'] == True
-            return agent
+            return jsonify(agent)
     return 'False'
 
 app.run(port=5100)

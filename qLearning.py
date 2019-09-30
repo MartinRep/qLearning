@@ -1,52 +1,56 @@
 import random
 import csv
+import requests
 
-random.seed(0)
+# Q(S[t], A[t]) += alpha*(R[t+1] + gama * maxQ(S[t+1], A) - Q(S[t], A[t]))
 
-gamma = 1
-epsilon = 0.1
-e_decay = 0
-alpha = 0.1
-num_of_episodes = 1000
-max_moves = 100
-actions = ["up", "down", "left", "right"]
-grid = {'x': 10, 'y': 10}   # TODO - Fetch from world API
+class Qlearning:
+    random.seed(0)
+    
+    def __init__(self, name, server = 'http://localhost:5100'):
+        self.name = name
+        self.server = server
+        self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
+        self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
+        self.e_decay = 0.9   # How long it takes to stop exloring and just follow the best route. 
+        self.alpha = 0.1     # Rate og learning.
+        self.num_of_episodes = 1000
+        self.max_moves = 100 # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
+        self.actions = ["up", "down", "left", "right"]
+        self.grid = {'x': 10, 'y': 10}   # TODO - Fetch from world API
+        self.policy = 0.0 # Set to 0.1 for greedy policy
+        self.log = []    
+        self.states = []
+        for i in range(self.grid['x']):
+            for j in range(self.grid['y']):
+                self.states.append((i, j))
+        empty_q = {}
+        empty_e = {}
+        for action in self.actions:
+            empty_q[action] = self.policy 
+            empty_e[action] = 0.0
+        self.Q = {}
+        self.E = {}
+        for state in self.states:
+            self.Q[state] = empty_q
+            self.E[state] = empty_e
 
-log = []
-states = []
-
-policy = 0.0 # Set to 0.1 for greedy policy
-for i in range(grid['x']):
-    for j in range(grid['y']):
-        states.append((i, j))
-
-empty_q = {}
-empty_e = {}
-for action in actions:
-    empty_q[action] = policy 
-    empty_e[action] = 0.0
-Q = {}
-E = {}
-for state in states:
-    Q[state] = empty_q
-    E[state] = empty_e
-
-# for (i, j, w) in world.specials:
-#     for action in actions:
-#         Q[(i, j)][action] = w
+    def do_action(self, action):
+        if action == self.actions[0]:
+            result = requests.get(self.server + '/move/' + self.name + '?deltaX=0&deltaY=-2')
+        elif action == self.actions[1]:
+            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=0&deltaY=1')
+        elif action == self.actions[2]:
+            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=-1&deltaY=0')
+        elif action == self.actions[3]:
+            result = requests.get('http://localhost:5100/move/' + self.name + '?deltaX=1&deltaY=0')
+        if result.text == 'False':
+            return False
+        else:
+            return result.json()
 
 
-# def do_action(action):
-#     s = world.player
-#     r = -world.score
-#     if action == actions[0]:
-#         world.try_move(0, -1)
-#     elif action == actions[1]:
-#         world.try_move(0, 1)
-#     elif action == actions[2]:
-#         world.try_move(-1, 0)
-#     elif action == actions[3]:
-#         world.try_move(1, 0)
+
 #     else:
 #         return
 #     s2 = world.player

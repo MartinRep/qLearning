@@ -54,7 +54,6 @@ def try_move(agentID):
     new_x = agent['x'] + delta_x
     new_y = agent['y'] + delta_y
     agent['latest_move'] = grid_world['move_penalty']
-    print(agent)
     if (new_x < 0) or (new_x == grid_world['x']) or (new_y < 0) or (new_y == grid_world['y']) or ((new_x, new_y) in walls): # agent moved outside the grid or into wall. No change of position, but still get move_reward
         return jsonify(agent)
     agent['x'] = new_x

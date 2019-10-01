@@ -8,12 +8,14 @@ def main():
     finished, newQ = ql.move()
     # TODO implement sharing the new Q entry with other agents via bprotocol
     
-    while(not finished):
-        print("result: {}".format(newQ))
-        finished, newQ = ql.move()   
-    print("Finished")
+    for i in range(100):
+        finished, newQ = ql.move()
+        while(not finished):
+            # print("result: {}".format(newQ))
+            # input("press key to continue...")
+            finished, newQ = ql.move()   
+        print("result: {}".format(ql.agent))
     
-
     
     # TODO implement logging
     # log.append({'episode': episode_num, 'score': score, 'steps': steps})

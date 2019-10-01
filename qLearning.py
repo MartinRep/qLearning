@@ -4,6 +4,7 @@ import requests
 import time
 
 # Q(S[t], A[t]) += alpha*(R[t+1] + gama * maxQ(S[t+1], A) - Q(S[t], A[t]))
+# self.Q[pos][action] += self.alpha*(float(reward) + self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))] - self.Q[pos][action])
 
 class Qlearning:
     random.seed()
@@ -16,7 +17,7 @@ class Qlearning:
         self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
         self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
         self.e_decay = 0.9   # How long it takes to stop exloring and just follow the best route. 
-        self.alpha = 0.99     # Rate og learning.
+        self.alpha = 0.9     # Rate og learning.
         self.num_of_episodes = 1000
         self.max_moves = 100 # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
         self.actions = ["up", "down", "left", "right"]
@@ -27,13 +28,14 @@ class Qlearning:
         for i in range(self.grid['x']):
             for j in range(self.grid['y']):
                 self.states.append((i, j))
-        empty_q = {}
-        empty_e = {}
-        for action in self.actions:
-            empty_q[action] = self.policy 
-            empty_e[action] = 0.0
+
         self.Q = {}
         for state in self.states:
+            empty_q = {}
+            empty_e = {}
+            for action in self.actions:
+                empty_q[action] = self.policy 
+                empty_e[action] = 0.0
             self.Q[state] = empty_q
         self.result = {}    # Results of an move/action taken
 
@@ -95,7 +97,7 @@ class Qlearning:
             return False
 
     def _updateQ(self, action, reward, pos):
-        self.Q[pos][action] += self.alpha*(float(reward) + self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))] - self.Q[pos][action])
+        self.Q[pos][action] += self.alpha*(float(reward) + (self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))]) - self.Q[pos][action])
         return self.Q[pos][action]
 
     def get_Q(self):

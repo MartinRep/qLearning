@@ -6,35 +6,32 @@ import time
 class Qlearning:
     random.seed()
     
-    def __init__(self, server = 'http://localhost:5100'):
+    def __init__(self, server = 'http://localhost:5100', alpha = 0.9, epsilon = 0.1, e_decay = 0.99, decay = True, gamma = 1, max_moves = 100, policy = 0.0):
         self.server = server
         while(self._server_info() is not True):     # Gets grid size and reward and penalties
-           print("Gettign Server Info was unsuccessfull, trying in a second...")
+           print("Getting Server Info was unsuccessful, trying in a second...")
            time.sleep(1)
         while(self._join() is not True):
-           print("Join unsuccessfull, trying in a second...")
+           print("Joining Server was unsuccessful, trying in a second...")
            time.sleep(1) 
-        self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
-        self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
-        self.e_decay = 0.99   # How long it takes to stop exloring and just follow the best route. 
-        self.alpha = 0.9     # Rate of learning.
-        self.decay = True
-        self.max_moves = 100 # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
+        self.alpha = alpha     # Rate of learning.
+        self.decay = decay
+        self.epsilon = epsilon   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
+        self.e_decay = e_decay   # How long it takes to stop exloring and just follow the best route. 
+        self.gamma = gamma # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
+        self.max_moves = max_moves # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
         self.actions = ["up", "down", "left", "right"]
-        self.policy = 0.0 # Set to 0.1 for greedy policy
+        self.policy = policy # Set to 0.1 for greedy policy
         self.log = []    
         self.states = []
         for i in range(self.grid_world['x']):
             for j in range(self.grid_world['y']):
                 self.states.append((i, j))
-
         self.Q = {}
         for state in self.states:
             empty_q = {}
-            empty_e = {}
             for action in self.actions:
                 empty_q[action] = self.policy 
-                empty_e[action] = 0.0
             self.Q[state] = empty_q
         self.result = {}    # Results of an move/action taken
 
@@ -79,7 +76,7 @@ class Qlearning:
         curr_Qs = self.Q[pos]
         maxQ = curr_Qs[self.actions[0]]
         max_action = 0
-        for i in range(1,4):
+        for i in range(1, len(self.actions)):
             if (curr_Qs[self.actions[i]] > maxQ):
                 maxQ = curr_Qs[self.actions[i]]
                 max_action = i
@@ -120,9 +117,5 @@ class Qlearning:
     def _decay_all(self):
         self.epsilon *= self.epsilon*self.e_decay
 
-
-#         
-#         alpha = max(0.1, pow(episode_num+1, -0.4))
-#         epsilon = min(0.3, pow(episode_num+1, -1.2))
 
 

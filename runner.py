@@ -13,7 +13,7 @@ def main():
         while(not finished):
             # print("result: {}".format(newQ))
             # input("press key to continue...")
-            finished, newQ = ql.move()   
+            finished, newQ = ql.move()
         print("result: {}".format(ql.agent))
     
     

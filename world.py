@@ -1,16 +1,12 @@
 # Simple Flask application so all other agents can share the same world.
 
-# World should hold: 
+# World holds: 
 # - Grid size
 # - Walls
-# - Actions Enumerables list
 # - Squares rewards
 # - Move penalty
-# - agents (dictionary - agents = {'name': 'agent1', 'x': 0, 'y':0, 'score': 0, 'finished': False})
-
-# End points:
-# GET, '/move<agentID>' + deltaX, deltaY -  return agent object (name,x, y, score, finished)
-
+# - agents
+# - agent position, score, steps, latest reward, if it's already taken by some agent client, if it reached goal (finished)
 
 from flask import Flask, request, Response, jsonify
 
@@ -57,15 +53,15 @@ def try_move(agentID):
     for (x, y, grid_reward, finished) in specials:
         if (agent['x'], agent['y']) == (x,y):
             agent['latest_move'] += grid_reward
-            agent['score'] += agent['latest_move']
             agent['finished'] = finished
             break
+    agent['score'] += agent['latest_move']
     return jsonify(agent)
 
 
 @app.route("/")
 def summary():
-    return jsonify( grid_world, agents)
+    return jsonify(grid_world)
 
 @app.route("/join")
 def join():

@@ -3,9 +3,6 @@ import csv
 import requests
 import time
 
-# Q(S[t], A[t]) += alpha*(R[t+1] + gama * maxQ(S[t+1], A) - Q(S[t], A[t]))
-# self.Q[pos][action] += self.alpha*(float(reward) + self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))] - self.Q[pos][action])
-
 class Qlearning:
     random.seed()
     
@@ -16,9 +13,9 @@ class Qlearning:
            time.sleep(1) 
         self.gamma = 1 # How soon you care to get reward. 1 anytime in future. 0 - looking for eminent reward 
         self.epsilon = 0.1   # Rate of exploration(0.1 = 10%). How often random action is chosen over the best action accorting to Qtable 
-        self.e_decay = 0.9   # How long it takes to stop exloring and just follow the best route. 
+        self.e_decay = 0.99   # How long it takes to stop exloring and just follow the best route. 
         self.alpha = 0.9     # Rate og learning.
-        self.num_of_episodes = 1000
+        self.decay = True
         self.max_moves = 100 # Maximum number of moves to restart the episode. (If goal is not found by this turn, it will restart)
         self.actions = ["up", "down", "left", "right"]
         self.grid = {'x': 10, 'y': 10}   # TODO - Fetch from world API
@@ -54,10 +51,14 @@ class Qlearning:
         action = self._next_action()
         if (self._move(action)): # If the move was successfully executed, update the Q table.
             newQ = self._updateQ(action, self.agent['latest_move'], last_pos)
-            if self.agent['steps'] >= 100:
+            if self.agent['steps'] >= self.max_moves:
                 result = requests.get(self.server + '/restart/' + self.agent['name'])
+                if self.decay:
+                    self.decay_all()
                 self.agent = result.json()
-            # TODO Implement alpha and epsilon decay, logging
+            if self.agent['finished'] == True and self.decay:
+                self.decay_all()
+            # TODO logging and maybe implement alpha decay
             return self.agent['finished'], {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
         return None
 
@@ -97,12 +98,15 @@ class Qlearning:
             return False
 
     def _updateQ(self, action, reward, pos):
-        self.Q[pos][action] += self.alpha*(float(reward) + (self.gamma*self.Q[pos][self._max_Q((self.agent['x'], self.agent['y']))]) - self.Q[pos][action])
+        self.Q[pos][action] += self.alpha*(float(reward) + (self.gamma*self.Q[(self.agent['x'], self.agent['y'])][self._max_Q((self.agent['x'], self.agent['y']))]) - self.Q[pos][action])
         return self.Q[pos][action]
 
     def get_Q(self):
         print(self.Q)
         return self.Q
+
+    def decay_all(self):
+        self.epsilon *= self.epsilon*self.e_decay
 
 
 #         

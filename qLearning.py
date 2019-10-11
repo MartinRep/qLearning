@@ -68,7 +68,7 @@ class Qlearning:
             if self.agent['finished'] == True and self.decay:
                 self._decay_all()
             # TODO logging and maybe implement alpha decay
-            return self.agent['finished'], {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
+            return self.agent, {'x': last_pos[0], 'y': last_pos[1], 'action': action, 'Q': newQ}
         return None
 
     # Return action with highest Q value
